@@ -1,0 +1,15 @@
+pyuv_tornado
+============
+pyuv_tornado is a wrapper of pyuv so it is usable from within tornado's
+event loop.  The purpose is to deal with a few things that tornado doesn't
+handle, such as asynchronous file operations.
+
+
+Installation
+============
+To install:
+
+    python setup.py build
+    sudo python setup.py install
+
+pyuv_tornado requires installation of pyuv and tornado as well.
