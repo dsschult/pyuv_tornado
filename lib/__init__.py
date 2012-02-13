@@ -57,7 +57,7 @@ class _loop(object):
         # if stopped, set flag to wake up caller
         cls.__thstop.set()
 
-class Metafs(object):
+class Metafs(type):
     """Wrapper around the pyuv.fs module"""
     
     _fsfuncs = [x for x in dir(pyuv.fs) if callable(getattr(pyuv.fs,x)) and not isinstance(getattr(pyuv.fs,x),type)]
@@ -78,7 +78,7 @@ class Metafs(object):
     def f(cls,name,callback=None,*args,**kwargs):
         ret = None
         if callback is not None:
-            def cb(loop,*args,**kwargs)
+            def cb(loop,*args,**kwargs):
                 IOLoop.instance().add_callback(partial(callback,*args,**kwargs))
             ret = getattr(pyuv.fs,name)(_loop.getloop(),*args,callback=cb,**kwargs)
         else:

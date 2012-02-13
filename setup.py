@@ -1,5 +1,5 @@
 from distutils.core import setup
-setup(name=pyuv_tornado,
+setup(name='pyuv_tornado',
       version='0.1',
       description='pyuv wrapper for tornado',
       author='David Schultz',
