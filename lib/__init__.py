@@ -76,8 +76,8 @@ class Metafs(type):
     @classmethod
     def f(cls,name,*args,**kwargs):
         ret = None
-        if 'callback' in kwargs and kwargs['callback'] is not None and
-            'tornado' in kwargs and kwargs['tornado'] is True:
+        if ('callback' in kwargs and kwargs['callback'] is not None
+            and 'tornado' in kwargs and kwargs['tornado'] is True):
             # activate callback wrapping with tornado IOLoop
             callback = kwargs.pop('callback')
             t = kwargs.pop('tornado')
