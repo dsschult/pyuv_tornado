@@ -93,13 +93,17 @@ class _Metafs(type):
     @classmethod
     def f(cls,name,*args,**kwargs):
         ret = None
-        if ('callback' in kwargs and kwargs['callback'] is not None
-            and 'tornado' in kwargs and kwargs['tornado'] is True):
-            # activate callback wrapping with tornado IOLoop
+        if 'callback' in kwargs and kwargs['callback'] is not None:
             callback = kwargs.pop('callback')
-            t = kwargs.pop('tornado')
-            def cb1(loop,*args,**kwargs):
-                IOLoop.instance().add_callback(partial(callback,*args,**kwargs))
+            if 'tornado' in kwargs and kwargs['tornado'] is True:
+                # activate callback wrapping with tornado IOLoop
+                t = kwargs.pop('tornado')
+                def cb1(loop,*args,**kwargs):
+                    IOLoop.instance().add_callback(partial(callback,*args,**kwargs))
+            else:
+                # regular callback without loop arg
+                def cb1(loop,*args,**kwargs):
+                    callback(*args,**kwargs)
             ret = getattr(pyuv.fs,name)(_loop.getloop(),*args,callback=cb1,**kwargs)
         else:
             ret = getattr(pyuv.fs,name)(_loop.getloop(),*args,**kwargs)
