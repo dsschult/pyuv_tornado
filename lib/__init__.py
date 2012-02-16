@@ -16,23 +16,28 @@ class _loop(object):
     @classmethod
     def init(cls):
         cls.__loop = pyuv.Loop.default_loop()
-        cls.__th = Thread(target=cls._thread)
         cls.__thstop = Event()
         cls.__event = Event()
-        
+        cls.__th = None        
         cls.start()
     
     @classmethod
     def start(cls):
-        # start pyuv thread
-        cls.__event.clear()
-        cls.__thstop.set()
-        cls.__th.start()
+        if cls.__th is None or not cls.__th.is_alive():
+            # start pyuv thread
+            cls.__event.clear()
+            cls.__thstop.set()
+            cls.__th = Thread(target=cls._thread)
+            cls.__th.start()
     
     @classmethod
     def run(cls):
-        if not cls.__th.is_alive():
-            raise Exception('pyuv loop not running')
+        if cls.__th is None:
+            cls.start()
+        elif not cls.__th.is_alive():
+            cls.__th = None
+            cls.start()
+        # trigger a wakeup to the current thread
         cls.__event.set()
     
     @classmethod
@@ -41,9 +46,13 @@ class _loop(object):
 
     @classmethod
     def stop(cls):
-        cls.__thstop.clear()
-        cls.__event.set()
-        cls.__thstop.wait(1)
+        if cls.__th is not None:
+            if cls.__th.is_alive():
+                # stop currently running thread
+                cls.__thstop.clear()
+                cls.__event.set()
+                cls.__thstop.wait(1)
+            cls.__th = None
     
     @classmethod
     def _thread(cls):
@@ -56,7 +65,14 @@ class _loop(object):
         # if stopped, set flag to wake up caller
         cls.__thstop.set()
 
-class Metafs(type):
+# make public facing methods for starting and stopping the loop
+def start():
+    _loop.start()
+def stop():
+    _loop.stop()
+
+
+class _Metafs(type):
     """Wrapper around the pyuv.fs module"""
     
     _fsfuncs = [x for x in dir(pyuv.fs) if callable(getattr(pyuv.fs,x)) and not isinstance(getattr(pyuv.fs,x),type)]
@@ -111,7 +127,7 @@ class Metafs(type):
     #    return _FSEvent()
 
 class fs(object):    
-    __metaclass__ = Metafs
+    __metaclass__ = _Metafs
     def __getattr__(self,name):
         return getattr(fs,name)
 
