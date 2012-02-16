@@ -28,6 +28,7 @@ class _loop(object):
             cls.__event.clear()
             cls.__thstop.set()
             cls.__th = Thread(target=cls._thread)
+            cls.__th.daemon = True
             cls.__th.start()
     
     @classmethod
