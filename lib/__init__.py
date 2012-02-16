@@ -1,7 +1,6 @@
 # wrappers for pyuv
 
 from threading import Thread,Event
-import logging
 from functools import partial
 
 import pyuv
@@ -77,17 +76,19 @@ class Metafs(type):
     @classmethod
     def f(cls,name,*args,**kwargs):
         ret = None
-        if 'callback' in kwargs and kwargs['callback'] is not None:
+        if 'callback' in kwargs and kwargs['callback'] is not None and
+            'tornado' in kwargs and kwargs['tornado'] is True:
+            # activate callback wrapping with tornado IOLoop
             callback = kwargs.pop('callback')
+            t = kwargs.pop('tornado')
             def cb1(loop,*args,**kwargs):
                 IOLoop.instance().add_callback(partial(callback,*args,**kwargs))
             ret = getattr(pyuv.fs,name)(_loop.getloop(),*args,callback=cb1,**kwargs)
         else:
-            logging.info('no callback')
             ret = getattr(pyuv.fs,name)(_loop.getloop(),*args,**kwargs)
         _loop.run()
         return ret
-        
+    
     #@classmethod
     #def FSEvent(cls):
     #    class _FSEvent():
